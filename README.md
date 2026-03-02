@@ -41,7 +41,7 @@ source venv/bin/activate  # En Windows usa: venv\Scripts\activate
 <pre><code>pip install fastapi sqlmodel uvicorn pymysql httpx
 </code></pre>
 
-<p><strong>3. Configuración de la Base de Datos:</strong></p>
+<p><strong>3. Configuración de la base de datos:</strong></p>
 <p>Asegúrate de tener una base de datos llamada <code>ProyectoT</code> en tu servidor local MySQL.<br>
 
 <p><strong>4. Ejecutar la aplicación:</strong></p>
@@ -51,19 +51,19 @@ source venv/bin/activate  # En Windows usa: venv\Scripts\activate
 
 <hr>
 
-<h2>Endpoints Principales</h2>
+<h2>Endpoints principales</h2>
 
-<h3>1. Estado del Servidor</h3>
+<h3>1. Estado del servidor</h3>
 <ul>
   <li><strong>GET</strong> <code>/</code></li>
   <li><strong>Descripción:</strong> Verifica que la API esté en línea.</li>
 </ul>
 
-<h3>2. Verificar Número</h3>
+<h3>2. Verificar número</h3>
 <ul>
   <li><strong>POST</strong> <code>/telefonos/Verificar/{numero}</code></li>
   <li><strong>Descripción:</strong> Toma el número proporcionado, revisa la base de datos local y, si no existe, consulta las APIs externas.</li>
-  <li><strong>Ejemplo de Respuesta:</strong></li>
+  <li><strong>Ejemplo de respuesta:</strong></li>
 </ul>
 <pre><code>{
   "id": 1,
@@ -75,7 +75,7 @@ source venv/bin/activate  # En Windows usa: venv\Scripts\activate
 }
 </code></pre>
 
-<h3>3. Listar Teléfonos Guardados</h3>
+<h3>3. Listar teléfonos guardados</h3>
 <ul>
   <li><strong>GET</strong> <code>/telefonos/</code></li>
   <li><strong>Descripción:</strong> Devuelve una lista de los teléfonos ya validados y guardados en la base de datos.</li>
