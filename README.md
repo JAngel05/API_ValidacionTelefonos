@@ -83,5 +83,9 @@ source venv/bin/activate  # En Windows usa: venv\Scripts\activate
 </ul>
 
 <hr>
-<h2>Creado por:</h2> 
+<h2>Version:</h2>
+<p>Version 1.0</p>
+
+<hr>
+<h3>Creado por:</h3> 
 <p>Jesus Angel Alvaro Castillo.</p>
