@@ -1,0 +1,16 @@
+#Archivos del sistema
+.DS_Store
+Thumbs.db
+
+#Entornos virtuales 
+node_modules/
+venv/
+env/
+.env
+
+#archivos compilados del caché 
+__pycache__
+*.pyc
+
+#logs
+*.log
