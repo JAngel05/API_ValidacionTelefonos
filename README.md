@@ -51,7 +51,7 @@ source venv/bin/activate  # En Windows usa: venv\Scripts\activate
 
 <hr>
 
-<h2>📡 Endpoints Principales</h2>
+<h2>Endpoints Principales</h2>
 
 <h3>1. Estado del Servidor</h3>
 <ul>
@@ -82,4 +82,6 @@ source venv/bin/activate  # En Windows usa: venv\Scripts\activate
   <li><strong>Parámetros Query:</strong> <code>offset</code> (int, default=0), <code>limit</code> (int, default=100, max=100).</li>
 </ul>
 
-</hr>
+<hr>
+<h2>Creado por:</h2> 
+<p>Jesus Angel Alvaro Castillo.</p>
