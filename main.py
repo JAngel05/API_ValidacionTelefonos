@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from db import engine
 from sqlmodel import SQLModel
-from routers import telefono
+from routers import telefono, auth
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 app = FastAPI(title = "Validación de teléfonos")
 
@@ -9,8 +11,11 @@ app = FastAPI(title = "Validación de teléfonos")
 def Inicio():
     SQLModel.metadata.create_all(engine)
 
-app.include_router(telefono.router)
+app.add_middleware( CORSMiddleware, allow_origins=["*"], allow_credentials = True, allow_methods = ["*"], allow_headers = ["*",])
 
-@app.get("/")
-def root(): 
-    return{"status":"online"}
+app.include_router(telefono.router)
+app.include_router(auth.router)
+
+@app.get("/", tags = ["Frontend"])
+async def paginaWeb():
+    return FileResponse("frontend/index.html")

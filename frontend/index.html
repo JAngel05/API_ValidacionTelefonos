@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validación API</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #333; }
+        .hidden { display: none !important; }
+        .app-view { animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { border: 1px solid #eaeaea; border-radius: 8px; box-shadow: none; background: #fff; }
+        .card-header { background-color: #fff; border-bottom: 1px solid #eaeaea; font-weight: 600; padding: 1.25rem 1.5rem; font-size: 1.1rem; }
+        .btn { border-radius: 6px; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
+        .btn-primary { background-color: #111; border-color: #111; color: #fff; }
+        .btn-primary:hover { background-color: #333; border-color: #333; }
+        .navbar { background-color: #fff !important; border-bottom: 1px solid #eaeaea; padding: 1rem 0; }
+        .navbar-brand { font-weight: 700; color: #111 !important; letter-spacing: -0.5px; }
+        .nav-link { color: #666 !important; font-weight: 500; }
+        .nav-link.active { color: #111 !important; font-weight: 700; }
+        .table { margin-bottom: 0; }
+        th { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; color: #888; font-weight: 600; border-bottom: 2px solid #eaeaea !important; }
+        td { vertical-align: middle; color: #444; }
+        .badge { border-radius: 4px; padding: 0.4em 0.6em; font-weight: 500; }
+        .bg-success { background-color: #e6f4ea !important; color: #1e8e3e !important; }
+        .bg-danger { background-color: #fce8e6 !important; color: #d93025 !important; }
+        .bg-primary { background-color: #e8f0fe !important; color: #1a73e8 !important; }
+        .bg-secondary { background-color: #f1f3f4 !important; color: #5f6368 !important; }
+        .token-text { word-break: break-all; font-family: monospace; font-size: 0.85em; max-width: 250px;}
+        #main-container { margin-top: 40px; }
+        pre { border: 1px solid #eaeaea; background-color: #f8f9fa !important; color: #333 !important; }
+    </style>
+</head>
+<body>
+
+<nav id="main-navbar" class="navbar navbar-expand-lg hidden">
+    <div class="container">
+        <a class="navbar-brand" href="#">Validación API</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link active" href="#" onclick="cambiarPagina('view-telefonos')">Verificador</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="cambiarPagina('view-historial')">Historial</a></li>
+                <li class="nav-item admin-only hidden"><a class="nav-link" href="#" onclick="cambiarPagina('view-usuarios')">Usuarios</a></li>
+                <li class="nav-item admin-only hidden"><a class="nav-link" href="#" onclick="cambiarPagina('view-tokens')">Tokens</a></li>
+                <li class="nav-item admin-only hidden"><a class="nav-link" href="#" onclick="cambiarPagina('view-apis')">Configuración APIs</a></li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <span id="nav-username" class="me-3 fw-bold text-muted" style="font-size: 0.9rem;"></span>
+                <button onclick="logout()" class="btn btn-sm btn-outline-secondary">Cerrar Sesión</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div id="main-container" class="container">
+    
+    <div id="login-section" class="card mx-auto" style="max-width: 380px; margin-top: 10vh;">
+        <div class="card-header text-center border-0 pt-4 pb-0"><h4 style="font-weight: 700; color: #111;">Iniciar Sesión</h4></div>
+        <div class="card-body p-4">
+            <div id="login-error" class="alert alert-danger hidden" style="font-size: 0.85rem;"></div>
+            <form id="login-form">
+                <div class="mb-3"><label class="form-label text-muted small fw-bold text-uppercase">Usuario</label><input type="text" id="username" class="form-control" required></div>
+                <div class="mb-4"><label class="form-label text-muted small fw-bold text-uppercase">Contraseña</label><input type="password" id="password" class="form-control" required></div>
+                <button type="submit" class="btn btn-primary w-100 py-2">Acceder</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="view-telefonos" class="app-view hidden">
+        <div class="card">
+            <div class="card-header">Verificador de Teléfonos</div>
+            <div class="card-body p-4">
+                <p class="text-muted small mb-3">Ingresa el número con código de país (Ej. 525512345678)</p>
+                <div class="input-group mb-4">
+                    <select id="api-selector" class="form-select" style="max-width: 150px; font-weight: 500;"><option value="auto">Global (Auto)</option></select>
+                    <input type="text" id="phone-input" class="form-control" maxlength="15" placeholder="Número a verificar">
+                    <button onclick="verificarTelefono()" class="btn btn-primary px-4">Consultar</button>
+                </div>
+                <pre id="phone-result" class="p-3 rounded hidden" style="font-size: 0.9rem;"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-historial" class="app-view hidden">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Historial de Consultas</span><button onclick="cargarHistorial()" class="btn btn-sm btn-outline-secondary">Actualizar</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead><tr><th class="ps-4">ID</th><th>Número</th><th>País</th><th>Tipo</th><th>Compañía</th><th>API Utilizada</th></tr></thead>
+                        <tbody id="historial-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-usuarios" class="app-view hidden">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Gestión de Usuarios</span><button onclick="cargarUsuarios()" class="btn btn-sm btn-outline-secondary">Actualizar</button>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-2 mb-4">
+                    <div class="col-md-3"><input type="text" id="new-username" class="form-control" placeholder="Nombre de usuario"></div>
+                    <div class="col-md-3"><input type="password" id="new-password" class="form-control" placeholder="Contraseña"></div>
+                    <div class="col-md-3">
+                        <select id="new-rol" class="form-select"><option value="usuario">Estándar</option><option value="admin">Administrador</option></select>
+                    </div>
+                    <div class="col-md-3"><button onclick="crearUsuario()" class="btn btn-primary w-100">Crear Usuario</button></div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th class="ps-4">ID</th><th>Usuario</th><th>Rol</th><th>Acciones</th></tr></thead>
+                    <tbody id="users-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-tokens" class="app-view hidden">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Gestión de Tokens</span>
+                <div><button onclick="generarToken()" class="btn btn-sm btn-primary me-2">Generar Token</button><button onclick="cargarTokens()" class="btn btn-sm btn-outline-secondary">Actualizar</button></div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th class="ps-4">ID</th><th>Token</th><th>ID Usuario</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody id="tokens-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-apis" class="app-view hidden">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Proveedores API</span>
+                <div>
+                    <button class="btn btn-sm btn-primary me-2" data-bs-toggle="modal" data-bs-target="#modalCrearApi">Agregar Proveedor</button>
+                    <button onclick="cargarApis()" class="btn btn-sm btn-outline-secondary">Actualizar</button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th class="ps-4">ID</th><th>Nombre</th><th>URL Base</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <tbody id="apis-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="modalCrearApi" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0"><h5 class="modal-title fw-bold">Registrar Proveedor</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="form-crear-api">
+                    <h6 class="fw-bold mt-2 mb-3">Conexión</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><label class="form-label small text-muted">Nombre API</label><input type="text" id="api-nombre" class="form-control" required></div>
+                        <div class="col-md-8"><label class="form-label small text-muted">URL Base</label><input type="text" id="api-url" class="form-control" required></div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6"><label class="form-label small text-muted">API Key</label><input type="text" id="api-key" class="form-control" required></div>
+                        <div class="col-md-3"><label class="form-label small text-muted">Parámetro Número</label><input type="text" id="api-param-num" class="form-control" required></div>
+                        <div class="col-md-3"><label class="form-label small text-muted">Parámetro Key</label><input type="text" id="api-param-key" class="form-control" required></div>
+                    </div>
+                    <h6 class="fw-bold border-top pt-3 mb-3">Mapeo de Respuesta (JSON)</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-4"><label class="form-label small text-muted">Validación</label><input type="text" id="api-map-valid" class="form-control" required></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">Número</label><input type="text" id="api-map-num" class="form-control" required></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">País</label><input type="text" id="api-map-pais" class="form-control" required></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6"><label class="form-label small text-muted">Tipo de Línea</label><input type="text" id="api-map-tipo" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label small text-muted">Valor para Celular</label><input type="text" id="api-map-celular" class="form-control" required></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6"><label class="form-label small text-muted">Código País</label><input type="text" id="api-map-codigo" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label small text-muted">Compañía</label><input type="text" id="api-map-compania" class="form-control" required></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="crearApi()">Guardar API</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditarApi" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0"><h5 class="modal-title fw-bold">Modificar Proveedor</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-api-id">
+                <form id="form-editar-api">
+                    <h6 class="fw-bold mt-2 mb-3">Conexión</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><label class="form-label small text-muted">Nombre API</label><input type="text" id="edit-api-nombre" class="form-control" required></div>
+                        <div class="col-md-8"><label class="form-label small text-muted">URL Base</label><input type="text" id="edit-api-url" class="form-control" required></div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6"><label class="form-label small text-muted">API Key</label><input type="text" id="edit-api-key" class="form-control" required></div>
+                        <div class="col-md-3"><label class="form-label small text-muted">Parámetro Número</label><input type="text" id="edit-api-param-num" class="form-control" required></div>
+                        <div class="col-md-3"><label class="form-label small text-muted">Parámetro Key</label><input type="text" id="edit-api-param-key" class="form-control" required></div>
+                    </div>
+                    <h6 class="fw-bold border-top pt-3 mb-3">Mapeo de Respuesta (JSON)</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-4"><label class="form-label small text-muted">Validación</label><input type="text" id="edit-api-map-valid" class="form-control" required></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">Número</label><input type="text" id="edit-api-map-num" class="form-control" required></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">País</label><input type="text" id="edit-api-map-pais" class="form-control" required></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6"><label class="form-label small text-muted">Tipo de Línea</label><input type="text" id="edit-api-map-tipo" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label small text-muted">Valor para Celular</label><input type="text" id="edit-api-map-celular" class="form-control" required></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6"><label class="form-label small text-muted">Código País</label><input type="text" id="edit-api-map-codigo" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label small text-muted">Compañía</label><input type="text" id="edit-api-map-compania" class="form-control" required></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarEdicionApi()">Actualizar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditarUsuario" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0"><h5 class="modal-title fw-bold">Modificar Usuario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-user-id">
+                <div class="mb-3"><label class="form-label small text-muted">Usuario</label><input type="text" id="edit-username" class="form-control bg-light" disabled></div>
+                <div class="mb-3"><label class="form-label small text-muted">Rol</label><select id="edit-rol" class="form-select"><option value="usuario">Estándar</option><option value="admin">Administrador</option></select></div>
+                <div class="mb-3"><label class="form-label small text-muted">Nueva Contraseña</label><input type="password" id="edit-password" class="form-control" placeholder="Dejar en blanco para mantener"></div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn btn-primary" onclick="guardarEdicionUsuario()">Guardar Cambios</button></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const API_URL = "http://localhost:8000"; 
+    let miToken = localStorage.getItem("token"); 
+    let modalEdicion, modalApi, modalEditarApi; 
+    let listaApisGlobal = []; // <-- Variable para guardar los datos de las APIs temporalmente
+
+    window.onload = () => { 
+        modalEdicion = new bootstrap.Modal(document.getElementById('modalEditarUsuario'));
+        modalApi = new bootstrap.Modal(document.getElementById('modalCrearApi'));
+        modalEditarApi = new bootstrap.Modal(document.getElementById('modalEditarApi')); // Instanciamos el nuevo modal
+        if (miToken) iniciarSesionExitosa(); 
+    };
+
+    function cambiarPagina(idPagina) {
+        document.querySelectorAll('.app-view').forEach(el => el.classList.add('hidden'));
+        document.getElementById(idPagina).classList.remove('hidden');
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        if(event && event.target) event.target.classList.add('active');
+        
+        if(idPagina === 'view-usuarios') cargarUsuarios();
+        if(idPagina === 'view-tokens') cargarTokens();
+        if(idPagina === 'view-apis') cargarApis();
+        if(idPagina === 'view-historial') cargarHistorial();
+    }
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+        e.preventDefault(); 
+        const user = document.getElementById("username").value;
+        const pass = document.getElementById("password").value;
+        const errorBox = document.getElementById("login-error");
+
+        try {
+            const response = await fetch(`${API_URL}/auth/login?username=${user}&password=${pass}`, { method: 'POST' });
+            const data = await response.json();
+            if (response.ok) {
+                miToken = data.token; localStorage.setItem("token", miToken); localStorage.setItem("username", user);
+                iniciarSesionExitosa();
+            } else { errorBox.innerText = data.detail; errorBox.classList.remove("hidden"); }
+        } catch (error) { errorBox.innerText = "Error de conexión."; errorBox.classList.remove("hidden"); }
+    });
+
+    async function iniciarSesionExitosa() {
+        document.getElementById("login-section").classList.add("hidden"); document.getElementById("login-section").style.display = "none";
+        document.getElementById("main-navbar").classList.remove("hidden"); document.getElementById("nav-username").innerText = localStorage.getItem("username");
+        try {
+            const response = await fetch(`${API_URL}/auth/admin/usuarios`, { headers: { 'Authorization': miToken } });
+            if (response.ok) document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+        } catch (e) { }
+        cambiarPagina('view-telefonos');
+        cargarDropdownApis();
+    }
+
+    function logout() { localStorage.clear(); location.reload(); }
+
+    async function cargarDropdownApis() {
+        try {
+            const response = await fetch(`${API_URL}/telefonos/apis_activas`, { headers: { 'Authorization': miToken } });
+            if (response.ok) {
+                const nombresApis = await response.json();
+                const selector = document.getElementById("api-selector");
+                selector.innerHTML = '<option value="auto">Global (Auto)</option>';
+                nombresApis.forEach(nombre => { selector.innerHTML += `<option value="${nombre}">${nombre}</option>`; });
+            }
+        } catch (error) { console.error("Error al cargar menú APIs"); }
+    }
+
+    async function verificarTelefono() {
+        const numero = document.getElementById("phone-input").value;
+        const apiElegida = document.getElementById("api-selector").value;
+        const resultBox = document.getElementById("phone-result");
+        if (!numero) return; 
+        resultBox.innerText = `Consultando...`; resultBox.classList.remove("hidden");
+        const numeroSeguro = encodeURIComponent(numero);
+        try {
+            const response = await fetch(`${API_URL}/telefonos/Verificar/${numeroSeguro}?api=${apiElegida}`, { method: 'POST', headers: { 'Authorization': miToken } });
+            const data = await response.json();
+            resultBox.innerText = response.ok ? JSON.stringify(data, null, 4) : `Error: ${data.detail}`;
+        } catch (error) { resultBox.innerText = "Error de conexión."; }
+    }
+
+    async function cargarHistorial() {
+        try {
+            const response = await fetch(`${API_URL}/telefonos/`, { headers: { 'Authorization': miToken } });
+            if (response.ok) {
+                const data = await response.json();
+                const tbody = document.getElementById("historial-table-body"); tbody.innerHTML = ""; 
+                data.forEach(tel => { tbody.innerHTML += `<tr><td class="ps-4 text-muted small">${tel.id}</td><td class="fw-bold">${tel.numero}</td><td>${tel.pais} <span class="text-muted small">(${tel.codigo_pais})</span></td><td>${tel.tipo}</td><td>${tel.compañia}</td><td><span class="badge bg-secondary">${tel.api_Utilizada}</span></td></tr>`; });
+            }
+        } catch (error) { console.error("Error al cargar el historial"); }
+    }
+
+    // --- USUARIOS Y TOKENS ---
+    async function cargarUsuarios() {
+        const response = await fetch(`${API_URL}/auth/admin/usuarios`, { headers: { 'Authorization': miToken } });
+        if (response.ok) {
+            const data = await response.json(); const tbody = document.getElementById("users-table-body"); tbody.innerHTML = ""; 
+            data.Usuarios.forEach(u => { tbody.innerHTML += `<tr><td class="ps-4 text-muted small">${u.id}</td><td class="fw-bold">${u.username}</td><td><span class="badge bg-${u.rol === 'admin' ? 'primary' : 'secondary'}">${u.rol}</span></td><td><button onclick="abrirModalEdicion(${u.id}, '${u.username}', '${u.rol}')" class="btn btn-sm btn-outline-secondary">Editar</button><button onclick="eliminarUsuario(${u.id})" class="btn btn-sm btn-outline-danger ms-2">Borrar</button></td></tr>`; });
+        }
+    }
+    async function crearUsuario() {
+        const user = document.getElementById("new-username").value; const pass = document.getElementById("new-password").value; const rol = document.getElementById("new-rol").value;
+        if(!user || !pass) return;
+        const response = await fetch(`${API_URL}/auth/admin/usuarios?username=${user}&password=${pass}&rol=${rol}`, { method: 'POST', headers: { 'Authorization': miToken } });
+        if (response.ok) { document.getElementById("new-username").value = ""; document.getElementById("new-password").value = ""; cargarUsuarios(); } else { const err = await response.json(); alert(err.detail); }
+    }
+    function abrirModalEdicion(id, username, rol) {
+        document.getElementById("edit-user-id").value = id; document.getElementById("edit-username").value = username; document.getElementById("edit-rol").value = rol; document.getElementById("edit-password").value = ""; 
+        modalEdicion.show();
+    }
+    async function guardarEdicionUsuario() {
+        const id = document.getElementById("edit-user-id").value; const nuevoRol = document.getElementById("edit-rol").value; const nuevaPass = document.getElementById("edit-password").value;
+        let url = `${API_URL}/auth/admin/usuarios/${id}?nuevo_rol=${nuevoRol}`; if (nuevaPass) url += `&nueva_password=${nuevaPass}`;
+        const response = await fetch(url, { method: 'PUT', headers: { 'Authorization': miToken } });
+        if (response.ok) { modalEdicion.hide(); cargarUsuarios(); }
+    }
+    async function eliminarUsuario(id) {
+        if(!confirm("¿Borrar permanentemente?")) return;
+        const response = await fetch(`${API_URL}/auth/admin/usuarios/${id}`, { method: 'DELETE', headers: { 'Authorization': miToken } });
+        if (response.ok) cargarUsuarios();
+    }
+    async function cargarTokens() {
+        const response = await fetch(`${API_URL}/auth/admin/tokens`, { headers: { 'Authorization': miToken } });
+        if (response.ok) {
+            const data = await response.json(); const tbody = document.getElementById("tokens-table-body"); tbody.innerHTML = ""; 
+            data.Lista_Tokens.forEach(t => {
+                const badgeActivo = t.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>';
+                let btnEstado = t.token === miToken ? `<button class="btn btn-sm btn-light text-muted" disabled>En Uso</button>` : (t.activo ? `<button onclick="cambiarEstadoToken('${t.token}', false)" class="btn btn-sm btn-outline-secondary">Desactivar</button>` : `<button onclick="cambiarEstadoToken('${t.token}', true)" class="btn btn-sm btn-outline-primary">Activar</button>`);
+                const btnLigar = t.usuario_id_asignado ? `<span class="text-muted small">Asignado</span>` : `<button onclick="ligarToken('${t.token}')" class="btn btn-sm btn-outline-dark">Vincular ID</button>`;
+                tbody.innerHTML += `<tr><td class="ps-4 text-muted small">${t.id}</td><td class="token-text">${t.token}</td><td class="fw-bold">${t.usuario_id_asignado || '-'}</td><td>${badgeActivo}</td><td><div class="d-flex gap-2">${btnLigar} ${btnEstado}</div></td></tr>`;
+            });
+        }
+    }
+    async function generarToken() { const response = await fetch(`${API_URL}/auth/admin/generar-token`, { method: 'POST', headers: { 'Authorization': miToken } }); if (response.ok) cargarTokens(); }
+    async function ligarToken(tokenStr) {
+        const usuarioId = prompt("ID de usuario:"); if (!usuarioId) return;
+        const response = await fetch(`${API_URL}/auth/admin/ligar-token?token=${tokenStr}&usuario_id=${usuarioId}`, { method: 'PUT', headers: { 'Authorization': miToken } });
+        if (response.ok) cargarTokens();
+    }
+    async function cambiarEstadoToken(tokenStr, activar) { const response = await fetch(`${API_URL}/auth/admin/estado-token?token=${tokenStr}&activar=${activar}`, { method: 'PUT', headers: { 'Authorization': miToken } }); if (response.ok) cargarTokens(); }
+
+    // --- GESTIÓN DE APIs ---
+    async function cargarApis() {
+        const response = await fetch(`${API_URL}/auth/admin/apis`, { headers: { 'Authorization': miToken } });
+        if (response.ok) {
+            const data = await response.json();
+            listaApisGlobal = data.apis; // Guardamos en la variable global para usar en Editar
+            
+            const tbody = document.getElementById("apis-table-body"); tbody.innerHTML = ""; 
+            data.apis.forEach(api => {
+                const badgeActivo = api.activa ? '<span class="badge bg-success">Operativa</span>' : '<span class="badge bg-secondary">Inactiva</span>';
+                const btnEstado = api.activa ? `<button onclick="cambiarEstadoApi(${api.id}, false)" class="btn btn-sm btn-outline-secondary">Desactivar</button>` : `<button onclick="cambiarEstadoApi(${api.id}, true)" class="btn btn-sm btn-outline-success">Activar</button>`;
+                
+                // NUEVO BOTÓN: Editar (Abre la función mandando el ID)
+                const btnEditar = `<button onclick="abrirModalEdicionApi(${api.id})" class="btn btn-sm btn-outline-dark">Editar</button>`;
+                
+                tbody.innerHTML += `<tr><td class="ps-4 text-muted small">${api.id}</td><td class="fw-bold">${api.nombre}</td><td class="text-muted small">${api.url_base}</td><td>${badgeActivo}</td><td><div class="d-flex gap-2">${btnEditar} ${btnEstado} <button onclick="eliminarApi(${api.id})" class="btn btn-sm btn-outline-danger">Eliminar</button></div></td></tr>`;
+            });
+        }
+    }
+    
+    async function crearApi() {
+        const nuevaApi = {
+            nombre: document.getElementById("api-nombre").value, url_base: document.getElementById("api-url").value, api_key: document.getElementById("api-key").value, activa: true,
+            parametro_num: document.getElementById("api-param-num").value, parametro_key: document.getElementById("api-param-key").value,
+            llave_validacion: document.getElementById("api-map-valid").value, llave_numero: document.getElementById("api-map-num").value, llave_pais: document.getElementById("api-map-pais").value,
+            llave_tipo: document.getElementById("api-map-tipo").value, valor_celular: document.getElementById("api-map-celular").value, llave_codigo: document.getElementById("api-map-codigo").value, llave_company: document.getElementById("api-map-compania").value
+        };
+        const response = await fetch(`${API_URL}/auth/admin/apis`, { method: 'POST', headers: { 'Authorization': miToken, 'Content-Type': 'application/json' }, body: JSON.stringify(nuevaApi) });
+        if (response.ok) { modalApi.hide(); document.getElementById("form-crear-api").reset(); cargarApis(); cargarDropdownApis(); }
+    }
+
+    // --- NUEVAS FUNCIONES DE EDICIÓN DE API ---
+    function abrirModalEdicionApi(id) {
+        // Buscamos la API específica en nuestra lista global
+        const api = listaApisGlobal.find(a => a.id === id);
+        if(!api) return;
+
+        // Llenamos el formulario con los datos viejos
+        document.getElementById("edit-api-id").value = api.id;
+        document.getElementById("edit-api-nombre").value = api.nombre;
+        document.getElementById("edit-api-url").value = api.url_base;
+        document.getElementById("edit-api-key").value = api.api_key;
+        document.getElementById("edit-api-param-num").value = api.parametro_num;
+        document.getElementById("edit-api-param-key").value = api.parametro_key;
+        document.getElementById("edit-api-map-valid").value = api.llave_validacion;
+        document.getElementById("edit-api-map-num").value = api.llave_numero;
+        document.getElementById("edit-api-map-pais").value = api.llave_pais;
+        document.getElementById("edit-api-map-tipo").value = api.llave_tipo;
+        document.getElementById("edit-api-map-celular").value = api.valor_celular;
+        document.getElementById("edit-api-map-codigo").value = api.llave_codigo;
+        document.getElementById("edit-api-map-compania").value = api.llave_company;
+
+        // Abrimos el modal
+        modalEditarApi.show();
+    }
+
+    async function guardarEdicionApi() {
+        const id = document.getElementById("edit-api-id").value;
+        const apiActualizada = {
+            nombre: document.getElementById("edit-api-nombre").value, url_base: document.getElementById("edit-api-url").value, api_key: document.getElementById("edit-api-key").value, activa: true,
+            parametro_num: document.getElementById("edit-api-param-num").value, parametro_key: document.getElementById("edit-api-param-key").value,
+            llave_validacion: document.getElementById("edit-api-map-valid").value, llave_numero: document.getElementById("edit-api-map-num").value, llave_pais: document.getElementById("edit-api-map-pais").value,
+            llave_tipo: document.getElementById("edit-api-map-tipo").value, valor_celular: document.getElementById("edit-api-map-celular").value, llave_codigo: document.getElementById("edit-api-map-codigo").value, llave_company: document.getElementById("edit-api-map-compania").value
+        };
+
+        const response = await fetch(`${API_URL}/auth/admin/apis/${id}`, { 
+            method: 'PUT', 
+            headers: { 'Authorization': miToken, 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(apiActualizada) 
+        });
+
+        if (response.ok) { 
+            modalEditarApi.hide(); 
+            cargarApis(); 
+            cargarDropdownApis(); 
+        } else {
+            alert("Hubo un error al actualizar la API.");
+        }
+    }
+
+    async function cambiarEstadoApi(id, activar) {
+        const response = await fetch(`${API_URL}/auth/admin/apis/${id}/estado?activar=${activar}`, { method: 'PUT', headers: { 'Authorization': miToken } });
+        if (response.ok) { cargarApis(); cargarDropdownApis(); }
+    }
+    async function eliminarApi(id) {
+        if(!confirm("¿Eliminar proveedor?")) return;
+        const response = await fetch(`${API_URL}/auth/admin/apis/${id}`, { method: 'DELETE', headers: { 'Authorization': miToken } });
+        if (response.ok) { cargarApis(); cargarDropdownApis(); }
+    }
+</script>
+</body>
+</html>
