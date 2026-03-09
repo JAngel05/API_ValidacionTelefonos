@@ -278,4 +278,4 @@ async def actualizar_api_completa(api_id: int, api_data: ProveedoresAPI, session
         session.commit()
         return {"mensaje": "API actualizada correctamente"}
     except Exception:
- 3232322        raise HTTPException(status_code=400, detail="Error al actualizar. ¿El nombre ya existe?")
+        raise HTTPException(status_code=400, detail="Error al actualizar. ¿El nombre ya existe?")
